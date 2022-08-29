@@ -1,4 +1,8 @@
 const {response}=require('express');
+const bcryptjs = require("bcryptjs");
+
+
+const User = require("../models/usuario"); // La mayuscula permite creas instancias
 
 
 const userGet = (req, res) => {
@@ -11,13 +15,30 @@ const userGet = (req, res) => {
   });
 };
 
-const userPost=(req, res) => {
-  // aqui se puede desestructurar lo que llega del body y solo usar lo que necesito
-  const body = req.body;
+const userPost= async(req, res) => {
+
+/* aqui se puede desestructurar lo que llega del body y solo usar lo que necesito
+  const body = req.body;*/
   //con destructuracuon  const {name, email, password, role} = req.body;
+  const { name, email, password, role } = req.body;
+  const user = new User({ name, email, password, role });
+
+  //verify email exist
+  /*const existEmail=await User.findOne({email})
+  if(existEmail) {
+    return res.status(400).json({ msg: "That email is already registred "});
+  }*/
+
+  //encript password
+  //el salt es el proceso de encriptacion su valor default es 10 a mayor valor mas seguridad
+  const salt=bcryptjs.genSaltSync();
+  user.password=bcryptjs.hashSync(password,salt);
+
+  //save in db
+  await user.save();
   res.json({
     msg: "Post API",
-    body,
+    user,
   });
 }
 

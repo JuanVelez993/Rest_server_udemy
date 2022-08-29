@@ -7,6 +7,7 @@ class Server {
         //los atributos se puede declarar en el constructor
         this.app = express();
         this.port = process.env.PORT;
+        //este sera el endpoint de la app
         this.usuariosPath = "/api/users";
 
         //conectar a la body

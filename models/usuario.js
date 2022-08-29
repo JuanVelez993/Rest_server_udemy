@@ -31,6 +31,16 @@ const UserSchema = Schema({
     default: false,
   },
 });
+/**los metodos del modelo pueden ser modificados de la siguiente forma
+ * en este caso por ejemplo modificamos el metodo toJson para excluir
+ * la contraseña
+ * una funcion de flecha mantiene el this fuera de la misma,en la normal solo a lo de dentro
+ */
+UserSchema.methods.toJSON=function(){
+  const {__V,password,...user}=this.toObject();
+  return user;
+
+}
 
 //el primer item es el nombre de la coleccion en mongo
 module.exports = model("User", UserSchema);
