@@ -3,16 +3,30 @@ const bcryptjs = require("bcryptjs");
 
 
 const User = require("../models/usuario"); // La mayuscula permite creas instancias
+const usuario = require('../models/usuario');
 
 
-const userGet = (req, res) => {
-  /**es posible añadir parametros opcionales a las consultas de la siguiente forma
-   * const { nombre, limite,apikey} = req.query;
-   * estos se delimitan en las queries por ir despues de un ?
+const userGet = async (req, res) => {
+  const { limit = 5, from = 0 } = req.query;
+  const query = {state: true}
+  /*es posible añadir parametros opcionales a las consultas de la siguiente forma
+   const { nombre, limite,apikey} = req.query;
+    estos se delimitan en las queries por ir despues de un ?
    */
-  res.json({
-    msg: "Get API-Controller",
-  });
+  /*const usuarios=await usuario.Find(query)
+  .skip(Number(from))
+  .limit(Number(limit));*/
+  //promise all ejecuta las promesas de manera simultanea y se pueden destructurar en arreglos
+  const [total, users] = await Promise.all([ 
+        User.countDocuments(query),
+        User.find(query)
+            .skip(Number(from))
+            .limit(Number(limit))
+    ])
+    res.json({
+        total,
+        users
+    })
 };
 
 const userPost= async(req, res) => {
@@ -42,17 +56,32 @@ const userPost= async(req, res) => {
   });
 }
 
-const userPut = (req, res) => {
-  //este parametro esta definido en la ruta del put
-  const id = req.params.id;
-  //forma alterna const {id} = req.params;
+const userPut = async(req, res) => {
+  //este parametro esta definido en la ruta del put const id = req.params.id;
+  const {id }= req.params;
+  const { _id, password, google, email, ...rest } = req.body;
+  
+
+   if (password) {
+     
+     const salt = bcryptjs.genSaltSync(); 
+     rest.password = bcryptjs.hashSync(password, salt);
+   }
+   const user = await User.findByIdAndUpdate(id, rest);
+
+   
   res.json({
     msg: "PUT API",
-    id,
+    user,
   });
 };
 
-const userDelete=(req, res) => {
+const userDelete=async (req, res) => {
+   const { id } = req.params;
+
+   //para borrarlo de la bd
+   //const user = await User.findByIdAndDelete(id);
+   const user = await User.findByIdAndUpdate(id, { state: false });
   res.json({
     msg: "DELETE API",
   });

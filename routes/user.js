@@ -2,7 +2,11 @@ const { Router } = require("express");
 const { check } = require("express-validator");
 const { validarCampos } = require("../middlewares/validar-campos");
 
-const{isRoleValid,emailExist}=require("../helpers/db-validators")
+const {
+  isRoleValid,
+  emailExist,
+  userExistsById,
+} = require("../helpers/db-validators");
 const {
   userGet,
   userPost,
@@ -27,13 +31,16 @@ router.post(
     //check('rol','Is not a valid role').isIn(["ADMIN_ROLE", "USER_ROLE"]),validarCampos]
     //cuando la funcion solo tiene un argumento no es necesario ponerlo pues pasa por default
     // check("rol").custom((rol)=>isRoleValid()),
-    check("rol").custom(isRoleValid),
+    check("role").custom(isRoleValid),
+    validarCampos
   ],
   userPost
 );
 
-router.put("/:id", userPut);
+router.put("/:id",[check('id', 'Not a valid ID').isMongoId(),
+       check('id').custom(userExistsById),validarCampos], userPut);
 
-router.delete("/", userDelete);
+router.delete("/:id",[check('id', 'Not a valid ID').isMongoId(),
+       check('id').custom(userExistsById),validarCampos], userDelete);
 
 module.exports = router;
